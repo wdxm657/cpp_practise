@@ -1,5 +1,6 @@
 add_library(
     _DRIVER
+    "${CMAKE_CURRENT_SOURCE_DIR}/config_gui.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/driver.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/driver.cpp"
 )

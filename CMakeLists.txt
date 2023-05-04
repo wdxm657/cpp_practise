@@ -19,12 +19,15 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/interface
+    ${PROJECT_SOURCE_DIR}/driver
 )
 
-add_subdirectory(interface) 
+add_subdirectory(interface)
+add_subdirectory(driver)
 
 add_executable(app main.cpp)
 target_link_libraries(app 
     ${OpenCV_LIBS} 
     _INTERFACE
+    _DRIVER
 )
