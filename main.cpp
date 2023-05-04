@@ -1,4 +1,3 @@
-#include <iostream>
 #include <getopt.h>
 #include "window.h"
 
@@ -14,7 +13,6 @@ int main(int argc, char **argv)
     window.set_title("Input Example");
     window.set_default_size(1280, 720);
 
-    cout << "Exit main !!!" << endl;
     // 显示窗口及其所有子控件
     return app->run(window);
 }
