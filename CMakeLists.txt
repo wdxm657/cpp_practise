@@ -19,9 +19,12 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/interface
-    )
+)
 
 add_subdirectory(interface) 
 
 add_executable(app main.cpp)
-target_link_libraries(app ${OpenCV_LIBS} interface)
+target_link_libraries(app 
+    ${OpenCV_LIBS} 
+    _INTERFACE
+)
