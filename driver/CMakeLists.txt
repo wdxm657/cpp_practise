@@ -5,4 +5,7 @@ add_library(
     "${CMAKE_CURRENT_SOURCE_DIR}/driver.cpp"
 )
 
-target_include_directories(_DRIVER PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(
+    _DRIVER 
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
+)

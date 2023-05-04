@@ -17,17 +17,22 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 # !OpenCV
 
+# GTK
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+# !GTK
+
 include_directories(
-    ${PROJECT_SOURCE_DIR}/interface
-    ${PROJECT_SOURCE_DIR}/driver
+#     ${PROJECT_SOURCE_DIR}/interface
+#     ${PROJECT_SOURCE_DIR}/driver
 )
 
 add_subdirectory(interface)
 add_subdirectory(driver)
+add_subdirectory(window)
 
 add_executable(app main.cpp)
+
 target_link_libraries(app 
-    ${OpenCV_LIBS} 
-    _INTERFACE
-    _DRIVER
+    _WINDOW
 )

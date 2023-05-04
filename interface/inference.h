@@ -24,6 +24,7 @@ struct Detection
 class Inference
 {
 public:
+    Inference();
     Inference(const std::string &onnxModelPath, const cv::Size2f &modelInputShape, const std::string &classesTxtFile, const bool &runWithCuda = true);
     std::vector<Detection> runInference(const cv::Mat &input);
     void base_exam(const std::string &projectBasePath);

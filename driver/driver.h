@@ -2,14 +2,20 @@
 #define DRIVER_H
 
 #include "config_gui.h"
+#include "iostream"
 
-class Driver {
+using namespace std;
+
+class Driver
+{
 public:
     Driver();
-    
-    int open_pci_driver();
+    ~Driver();
+
+
 private:
-    int net;
+    int fd;
+    void open_pci_driver();
 };
 
 #endif // DRIVER_H

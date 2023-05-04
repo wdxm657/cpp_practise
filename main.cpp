@@ -1,36 +1,20 @@
 #include <iostream>
-#include <vector>
 #include <getopt.h>
-
-#include <opencv2/opencv.hpp>
-
-#include "inference.h"
-#include "driver.h"
+#include "window.h"
 
 using namespace std;
 using namespace cv;
 
 int main(int argc, char **argv)
 {
-    std::string projectBasePath = "/home/wdxm/code/yolov8_CPP_Inference_OpenCV_ONNX";
-    bool runOnGPU = true;
+    auto app = Gtk::Application::create(argc, argv, "org.gtkmm.examples.base");
 
-    Inference inf(projectBasePath + "/source/models/yolov8s.onnx", cv::Size(640, 480),
-                  projectBasePath + "/source/classes/classes.txt", runOnGPU);
+    // 创建主窗口
+    MainWindow window;
+    window.set_title("Input Example");
+    window.set_default_size(1280, 720);
 
-    // inf.base_exam(projectBasePath);
-
-    Driver driver;
-    int pci_driver_fd = driver.open_pci_driver();
-    if (pci_driver_fd)
-    {
-        cout << "PCIe Device Open Success !!!" << endl;
-        close(pci_driver_fd);
-    }
-    else
-    {
-        cout << "PCIe Device Open Fail !!!" << endl;
-    }
     cout << "Exit main !!!" << endl;
-    return 0;
+    // 显示窗口及其所有子控件
+    return app->run(window);
 }
