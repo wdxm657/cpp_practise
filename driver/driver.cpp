@@ -12,6 +12,7 @@ Driver::~Driver()
 	{
 		close(fd);
 	}
+	cout << "Exit driver !!!" << endl;
 }
 
 void Driver::open_pci_driver()
