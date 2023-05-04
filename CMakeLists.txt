@@ -27,7 +27,7 @@ include_directories(
 #     ${PROJECT_SOURCE_DIR}/driver
 )
 
-add_subdirectory(interface)
+add_subdirectory(inference)
 add_subdirectory(driver)
 add_subdirectory(window)
 

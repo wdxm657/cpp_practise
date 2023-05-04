@@ -1,8 +1,8 @@
 #include "inference.h"
 
 Inference::Inference()
+    : projectBasePath("/home/wdxm/code/yolov8_CPP_Inference_OpenCV_ONNX")
 {
-    std::string projectBasePath = "/home/wdxm/code/yolov8_CPP_Inference_OpenCV_ONNX";
     modelPath = projectBasePath + "/source/models/yolov8s.onnx";
     modelShape = cv::Size(640, 480);
     classesPath = projectBasePath + "/source/classes/classes.txt";
@@ -13,6 +13,7 @@ Inference::Inference()
 }
 
 Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelInputShape, const std::string &classesTxtFile, const bool &runWithCuda)
+    : projectBasePath("/home/wdxm/code/yolov8_CPP_Inference_OpenCV_ONNX")
 {
     modelPath = onnxModelPath;
     modelShape = modelInputShape;
@@ -23,8 +24,9 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelIn
     loadClassesFromFile();
 }
 
-void Inference::base_exam(const std::string &projectBasePath){
-    
+void Inference::base_exam()
+{
+
     std::vector<std::string> imageNames;
     imageNames.push_back(projectBasePath + "/source/data/bus.jpg");
     imageNames.push_back(projectBasePath + "/source/data/zidane.jpg");
@@ -61,11 +63,12 @@ void Inference::base_exam(const std::string &projectBasePath){
 
         // This is only for preview purposes
         float scale = 0.8;
-        cv::resize(frame, frame, cv::Size(frame.cols*scale, frame.rows*scale));
+        cv::resize(frame, frame, cv::Size(frame.cols * scale, frame.rows * scale));
         cv::imshow("Inference", frame);
 
         cv::waitKey(-1);
     }
+    cv::destroyAllWindows();
 }
 
 std::vector<Detection> Inference::runInference(const cv::Mat &input)
@@ -75,7 +78,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
         modelInput = formatToSquare(modelInput);
 
     cv::Mat blob;
-    cv::dnn::blobFromImage(modelInput, blob, 1.0/255.0, modelShape, cv::Scalar(), true, false);
+    cv::dnn::blobFromImage(modelInput, blob, 1.0 / 255.0, modelShape, cv::Scalar(), true, false);
     net.setInput(blob);
 
     std::vector<cv::Mat> outputs;
@@ -109,7 +112,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
     {
         if (yolov8)
         {
-            float *classes_scores = data+4;
+            float *classes_scores = data + 4;
 
             cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
             cv::Point class_id;
@@ -142,7 +145,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
 
             if (confidence >= modelConfidenseThreshold)
             {
-                float *classes_scores = data+5;
+                float *classes_scores = data + 5;
 
                 cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
                 cv::Point class_id;

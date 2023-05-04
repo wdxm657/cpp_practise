@@ -1,8 +1,7 @@
 #include "window.h"
 
 MainWindow::MainWindow()
-    : driver()
-    , inf()
+    : driver(), inf()
 {
   const std::vector<std::string> titles = {"test num", "Start size", "End size", "Packet Step", "other1", "other2"};
   const std::vector<std::string> default_values = {"0", "2048", "2048", "0", "0", "0"};
@@ -41,6 +40,7 @@ MainWindow::MainWindow()
   // 将输入框数组添加到按钮回调函数中
   button_.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_clicked));
 
+  // inf.base_exam();
   // 显示所有子控件
   show_all_children();
 }
