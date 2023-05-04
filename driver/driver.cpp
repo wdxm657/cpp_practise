@@ -1,7 +1,7 @@
 #include "driver.h"
 
 Driver::Driver()
-	: fd(0)
+	: fd(0), dma()
 {
 	open_pci_driver();
 }

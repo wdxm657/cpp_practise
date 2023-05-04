@@ -61,20 +61,22 @@ MainWindow::~MainWindow()
 void MainWindow::on_button_clicked()
 {
   // 从输入框中获取值
-  std::vector<std::string> values;
+  std::vector<unsigned int> values;
   for (auto entry : entries_)
   {
-    values.push_back(entry->get_text());
+    unsigned int value = std::stoul(entry->get_text().raw());
+    values.push_back(value);
   }
+  driver.dma.set_auto(values);
 
-  // 将值输出到文本视图中
-  Glib::ustring output;
-  for (auto value : values)
-  {
-    output += value + "\n";
-  }
+  // // 将值输出到文本视图中
+  // Glib::ustring output;
+  // for (auto value : values)
+  // {
+  //   output += value + "\n";
+  // }
 
-  text_view_.get_buffer()->set_text(output);
+  // text_view_.get_buffer()->set_text(output);
 
   // 将值输出到控制台中
   for (auto value : values)

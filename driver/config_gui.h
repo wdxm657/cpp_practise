@@ -61,6 +61,31 @@
 #define DMA_MAX_PACKET_SIZE   			4096							/* DMA包最大值 */
 #define DMA_MIN_PACKET_SIZE   			4								/* DMA包最小值 */
 
+typedef struct _DMA_DATA_
+{
+	unsigned char read_buf[DMA_MAX_PACKET_SIZE];
+	unsigned char write_buf[DMA_MAX_PACKET_SIZE];
+}DMA_DATA;
+
+typedef struct _DMA_OPERATION_
+{
+	unsigned int current_len;
+	unsigned int offset_addr;
+	unsigned int cmd;
+	DMA_DATA data;
+}DMA_OPERATION;
+
+typedef struct _DMA_AUTO_
+{
+	unsigned int test_num;
+	unsigned int start;
+	unsigned int end;
+	unsigned int step;
+	unsigned int write_cnt;
+	unsigned int read_cnt;
+	unsigned int error_cnt;
+	unsigned int step_add_cnt;
+}DMA_AUTO;
 
 
 #endif // _CONFIG_GUI_H
