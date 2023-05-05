@@ -14,6 +14,8 @@ public:
     ~Driver();
     DMA dma;
 
+    int getfd();
+
 private:
     int fd;
     void open_pci_driver();

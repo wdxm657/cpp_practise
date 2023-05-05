@@ -28,3 +28,8 @@ void Driver::open_pci_driver()
 		cout << "PCIe Device Open Success !!!" << endl;
 	}
 }
+
+int Driver::getfd()
+{
+	return fd;
+}

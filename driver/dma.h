@@ -5,6 +5,15 @@
 #include <vector>
 #include "iostream"
 
+struct dma_oper
+{
+    int current_len;
+    int offset_addr;
+    int cmd;
+    unsigned char read_buf[DMA_MAX_PACKET_SIZE];
+    unsigned char write_buf[DMA_MAX_PACKET_SIZE];
+};
+
 using namespace std;
 
 class DMA
@@ -13,15 +22,11 @@ public:
     DMA();
     ~DMA();
 
-    void set_auto(std::vector<unsigned int> values);
+    void set_auto(std::vector<unsigned int> values, int fd);
 
 private:
     // dma operator
-    int current_len;
-    int offset_addr;
-    int cmd;
-    unsigned char read_buf[DMA_MAX_PACKET_SIZE];
-    unsigned char write_buf[DMA_MAX_PACKET_SIZE];
+    dma_oper *dma_operator;
 
     // dma auto
     unsigned int test_num;
@@ -30,6 +35,9 @@ private:
     unsigned int step;
     unsigned int write_cnt;
     unsigned int read_cnt;
+
+    // driver
+    int pcie_fd;
 
     /**************************************************************************
     ** 函数名称:    dma_auto_process
@@ -40,6 +48,7 @@ private:
     ** 返回参数:    无
     ****************************************************************************/
     void dma_auto_process();
+    void dma_oper_fun();
 };
 
 #endif // DMA_H

@@ -31,7 +31,7 @@ MainWindow::MainWindow()
 
   text_view_.set_editable(false);
   text_view_.set_cursor_visible(false);
-  scrolled_window_.add(text_view_);
+  scrolled_window_.add(text_view_);   
 
   // 创建按钮
   button_.set_label("Get Values");
@@ -67,7 +67,7 @@ void MainWindow::on_button_clicked()
     unsigned int value = std::stoul(entry->get_text().raw());
     values.push_back(value);
   }
-  driver.dma.set_auto(values);
+  driver.dma.set_auto(values, driver.getfd());
 
   // // 将值输出到文本视图中
   // Glib::ustring output;
