@@ -28,6 +28,7 @@ public:
     Inference(const std::string &onnxModelPath, const cv::Size2f &modelInputShape, const std::string &classesTxtFile, const bool &runWithCuda = true);
     std::vector<Detection> runInference(const cv::Mat &input);
     void base_exam();
+    uint8_t *process(const std::vector<uint16_t> *rd_buf);
 
 private:
     void loadClassesFromFile();
@@ -41,9 +42,9 @@ private:
     std::vector<std::string> classes{};
     cv::Size2f modelShape{};
 
-    float modelConfidenseThreshold {0.25};
-    float modelScoreThreshold      {0.45};
-    float modelNMSThreshold        {0.50};
+    float modelConfidenseThreshold{0.25};
+    float modelScoreThreshold{0.45};
+    float modelNMSThreshold{0.50};
 
     bool letterBoxForSquare = true;
     std::string projectBasePath;

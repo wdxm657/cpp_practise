@@ -1,7 +1,7 @@
 #include "window.h"
 
 MainWindow::MainWindow()
-    : driver(), inf()
+    : driver()
 {
   const std::vector<std::string> titles = {"test num", "Start size", "End size", "Packet Step", "other1", "other2"};
   const std::vector<std::string> default_values = {"0", "2048", "2048", "0", "0", "0"};
@@ -67,7 +67,9 @@ void MainWindow::on_button_clicked()
     unsigned int value = std::stoul(entry->get_text().raw());
     values.push_back(value);
   }
-  driver.dma.set_auto(values, driver.getfd());
+
+  // 设置dma操作  根据传入的 values 决定该怎样获取图像数据
+  driver.dma.set_dma_oper(values, driver.getfd());
 
   // // 将值输出到文本视图中
   // Glib::ustring output;
@@ -81,6 +83,6 @@ void MainWindow::on_button_clicked()
   // 将值输出到控制台中
   for (auto value : values)
   {
-    std::cout << value << std::endl;
+    // std::cout << value << std::endl;
   }
 }

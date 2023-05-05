@@ -24,6 +24,12 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelIn
     loadClassesFromFile();
 }
 
+uint8_t *Inference::process(const std::vector<uint16_t> *rd_buf)
+{
+    uint8_t *test;
+    return test;
+}
+
 void Inference::base_exam()
 {
 

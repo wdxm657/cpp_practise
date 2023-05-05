@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 #include "driver.h"
-#include "inference.h"
 
 class MainWindow : public Gtk::Window
 {
@@ -28,7 +27,6 @@ protected:
   Gtk::TextView text_view_;
 
   Driver driver;
-  Inference inf;
 };
 
 #endif // MAIN_WINDOW_H

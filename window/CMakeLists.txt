@@ -7,7 +7,6 @@ add_library(
 target_link_libraries(_WINDOW 
   PUBLIC ${GTKMM_LIBRARIES}
   PUBLIC _DRIVER
-  PUBLIC _INFERENCE
 )
 
 target_include_directories(

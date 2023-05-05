@@ -4,6 +4,10 @@
 #include "config_gui.h"
 #include <vector>
 #include "iostream"
+#include "inference.h"
+
+// 计算数据总长度  1个数据:32位 2个像素     1次512个数据  总共2025次 = 1920*1080
+#define TOTAL_FRAME_PIX 2 * 512 * 2025
 
 struct dma_oper
 {
@@ -22,7 +26,7 @@ public:
     DMA();
     ~DMA();
 
-    void set_auto(std::vector<unsigned int> values, int fd);
+    void set_dma_oper(std::vector<unsigned int> values, int fd);
 
 private:
     // dma operator
@@ -39,6 +43,14 @@ private:
     // driver
     int pcie_fd;
 
+    // dnn inf
+    Inference inf;
+
+    // buffer
+    std::vector<uint16_t> pix_buffer;
+    int pt;
+    bool process_finish;
+
     /**************************************************************************
     ** 函数名称:    dma_auto_process
     ** 函数功能:dma auto测试界面执行函数
@@ -48,7 +60,8 @@ private:
     ** 返回参数:    无
     ****************************************************************************/
     void dma_auto_process();
-    void dma_oper_fun();
+    void dma_rd();
+    void dma_wr();
 };
 
 #endif // DMA_H
