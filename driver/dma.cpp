@@ -1,7 +1,7 @@
 #include "dma.h"
 
 DMA::DMA()
-    : test_num(0), start(0), end(0), step(0), write_cnt(0), read_cnt(0), pcie_fd(0), pt(0), process_finish(true),inf()
+    : test_num(0), start(0), end(0), step(0), write_cnt(0), read_cnt(0), pcie_fd(0), pt(0), process_finish(true), inf()
 {
     dma_operator = new dma_oper;
     memset(dma_operator, 0, sizeof(dma_oper));
@@ -72,7 +72,7 @@ void DMA::dma_auto_process()
         }
         if (temp_cnt == test_num)
         {
-            cout << "A total of " << test_num/2025 << " frames of images were read" << endl;
+            cout << "A total of " << test_num / 2025 << " frames of images were read" << endl;
             // button_flag.dma_auto = set_button_text(AUTO_BUTTON_NUM, button_flag.dma_auto);
         }
     }
@@ -80,7 +80,7 @@ void DMA::dma_auto_process()
 
 void DMA::dma_rd()
 {
-    dma_operator-> current_len = start + step;
+    dma_operator->current_len = start + step;
     dma_operator->current_len = (dma_operator->current_len > end) ? end : dma_operator->current_len;
     dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
     dma_operator->offset_addr = 0;
@@ -112,7 +112,7 @@ void DMA::dma_rd()
             {
                 // 开一个线程去处理图像，获取图像的线程根据处理图像的线程是否完成去准备一帧图像，若完成则直接传入，未完成则继续接收但只继续接收一帧
                 // finish默认为true，传入pix_buffer在dma_wr中缓存pix_buffer并 拉低finish，清空pix_buffer,并准备好下一帧图像，阻塞等待dma_wr完成
-                while(process_finish)
+                while (process_finish)
                 {
                     dma_wr();
                     pix_buffer.clear();
@@ -123,7 +123,7 @@ void DMA::dma_rd()
             else
             {
                 pix_buffer.push_back(pix);
-                std::cout << "pix_buffer size = " << pix_buffer.size()  << std::endl;
+                std::cout << "pix_buffer size = " << pix_buffer.size() << std::endl;
             }
         }
     }

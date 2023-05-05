@@ -31,7 +31,7 @@ MainWindow::MainWindow()
 
   text_view_.set_editable(false);
   text_view_.set_cursor_visible(false);
-  scrolled_window_.add(text_view_);   
+  scrolled_window_.add(text_view_);
 
   // 创建按钮
   button_.set_label("Get Values");
