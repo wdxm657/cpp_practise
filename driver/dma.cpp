@@ -123,7 +123,7 @@ void DMA::dma_rd()
             else
             {
                 pix_buffer.push_back(pix);
-                std::cout << "pix_buffer size = " << pix_buffer.size() << std::endl;
+                // std::cout << "pix_buffer size = " << pix_buffer.size() << std::endl;
             }
         }
     }
@@ -133,7 +133,7 @@ void DMA::dma_wr()
 {
     process_finish = false;
     cout << "dma_wr in" << endl;
-    // uint8_t *wr_pt = inf.process(&pix_buffer);
+    uint8_t *wr_pt = inf.process(pix_buffer);
     // dma_operator->write_buf = wr_pt;
 
     // ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);        /* 地址映射,以及数据缓存申请 */

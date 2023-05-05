@@ -30,6 +30,7 @@ include_directories(
 add_subdirectory(inference)
 add_subdirectory(driver)
 add_subdirectory(window)
+add_subdirectory(test)
 
 add_executable(app main.cpp)
 

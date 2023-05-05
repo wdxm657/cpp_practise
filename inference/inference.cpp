@@ -24,8 +24,20 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelIn
     loadClassesFromFile();
 }
 
-uint8_t *Inference::process(const std::vector<uint16_t> *rd_buf)
+uint8_t *Inference::process(const std::vector<uint16_t> &rd_buf)
 {
+    cv::Mat img(1080, 1920, CV_8UC3);
+    for (int i = 0; i < rd_buf.size(); i++)
+    {
+        uint16_t pixel = rd_buf[i];
+        uint8_t r = (pixel >> 11) & 0x1f;
+        uint8_t g = (pixel >> 5) & 0x3f;
+        uint8_t b = pixel & 0x1f;
+        img.at<cv::Vec3b>(i / 1920, i % 1920) = cv::Vec3b(b << 3, g << 2, r << 3);
+    }
+    cv::imshow("Image", img);
+    cv::waitKey(0);
+    cv::destroyAllWindows();
     uint8_t *test;
     return test;
 }
