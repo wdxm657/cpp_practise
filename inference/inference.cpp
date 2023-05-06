@@ -24,69 +24,58 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelIn
     loadClassesFromFile();
 }
 
-uint8_t *Inference::process(const std::vector<uint16_t> &rd_buf)
+cv::Mat Inference::process(cv::Mat &img)
 {
-    cv::Mat img(1080, 1920, CV_8UC3);
-    for (int i = 0; i < rd_buf.size(); i++)
-    {
-        uint16_t pixel = rd_buf[i];
-        uint8_t r = (pixel >> 11) & 0x1f;
-        uint8_t g = (pixel >> 5) & 0x3f;
-        uint8_t b = pixel & 0x1f;
-        img.at<cv::Vec3b>(i / 1920, i % 1920) = cv::Vec3b(b << 3, g << 2, r << 3);
-    }
-    cv::imshow("Image", img);
-    cv::waitKey(0);
-    cv::destroyAllWindows();
-    uint8_t *test;
-    return test;
+    cv::Mat res = base_exam(img);
+    return res;
 }
 
-void Inference::base_exam()
+cv::Mat Inference::base_exam(cv::Mat &frame)
 {
 
-    std::vector<std::string> imageNames;
-    imageNames.push_back(projectBasePath + "/source/data/bus.jpg");
-    imageNames.push_back(projectBasePath + "/source/data/zidane.jpg");
+    // std::vector<std::string> imageNames;
+    // imageNames.push_back(projectBasePath + "/source/data/bus.jpg");
+    // imageNames.push_back(projectBasePath + "/source/data/zidane.jpg");
 
-    for (int i = 0; i < imageNames.size(); ++i)
+    // for (int i = 0; i < imageNames.size(); ++i)
+    // {
+    // cv::Mat frame = cv::imread(imageNames[i]);
+
+    // Inference starts here...
+    std::vector<Detection> output = runInference(frame);
+
+    int detections = output.size();
+    std::cout << "Number of detections:" << detections << std::endl;
+
+    for (int i = 0; i < detections; ++i)
     {
-        cv::Mat frame = cv::imread(imageNames[i]);
+        Detection detection = output[i];
 
-        // Inference starts here...
-        std::vector<Detection> output = runInference(frame);
+        cv::Rect box = detection.box;
+        cv::Scalar color = detection.color;
 
-        int detections = output.size();
-        std::cout << "Number of detections:" << detections << std::endl;
+        // Detection box
+        cv::rectangle(frame, box, color, 2);
 
-        for (int i = 0; i < detections; ++i)
-        {
-            Detection detection = output[i];
+        // Detection box text
+        std::string classString = detection.className + ' ' + std::to_string(detection.confidence).substr(0, 4);
+        cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
+        cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
 
-            cv::Rect box = detection.box;
-            cv::Scalar color = detection.color;
-
-            // Detection box
-            cv::rectangle(frame, box, color, 2);
-
-            // Detection box text
-            std::string classString = detection.className + ' ' + std::to_string(detection.confidence).substr(0, 4);
-            cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
-            cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
-
-            cv::rectangle(frame, textBox, color, cv::FILLED);
-            cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
-        }
-        // Inference ends here...
-
-        // This is only for preview purposes
-        float scale = 0.8;
-        cv::resize(frame, frame, cv::Size(frame.cols * scale, frame.rows * scale));
-        cv::imshow("Inference", frame);
-
-        cv::waitKey(-1);
+        cv::rectangle(frame, textBox, color, cv::FILLED);
+        cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
     }
-    cv::destroyAllWindows();
+    // Inference ends here...
+
+    // This is only for preview purposes
+    // float scale = 0.8;
+    // cv::resize(frame, frame, cv::Size(frame.cols * scale, frame.rows * scale));
+    // cv::imshow("Inference", frame);
+
+    // cv::waitKey(-1);
+    // }
+    // cv::destroyAllWindows();
+    return frame;
 }
 
 std::vector<Detection> Inference::runInference(const cv::Mat &input)

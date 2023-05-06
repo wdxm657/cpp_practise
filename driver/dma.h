@@ -47,6 +47,9 @@ private:
     Inference inf;
 
     // buffer
+    int pix_col;
+    int pix_row;
+    cv::Mat img;
     std::vector<uint16_t> pix_buffer;
     int pt;
     bool process_finish;
