@@ -4,7 +4,7 @@ MainWindow::MainWindow()
     : driver()
 {
   const std::vector<std::string> titles = {"test num", "Start size", "End size", "Packet Step", "other1", "other2"};
-  const std::vector<std::string> default_values = {"0", "2048", "2048", "0", "0", "0"};
+  const std::vector<std::string> default_values = {"2026", "2048", "2048", "0", "0", "0"};
   // 创建网格容器
   add(grid_);
 

@@ -49,8 +49,11 @@ private:
     // buffer
     int pix_col;
     int pix_row;
+
+    int pix_cnt;
+
     cv::Mat img;
-    std::vector<uint16_t> pix_buffer;
+    std::vector<uint8_t> wr_vec;
     int pt;
     bool process_finish;
 

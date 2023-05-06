@@ -12,7 +12,9 @@ DMA::DMA()
       process_finish(true),
       pix_col(0),
       pix_row(0),
+      pix_cnt(0),
       inf(),
+      wr_vec(TOTAL_FRAME_PIX * 2, 0),
       img(1080, 1920, CV_8UC3)
 {
     dma_operator = new dma_oper;
@@ -89,13 +91,33 @@ void DMA::dma_auto_process()
         }
     }
 }
-
+int a = 0;
 void DMA::dma_rd()
 {
     dma_operator->current_len = start + step;
     dma_operator->current_len = (dma_operator->current_len > end) ? end : dma_operator->current_len;
     dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
     dma_operator->offset_addr = 0;
+
+    for (int i = 0; i < dma_operator->current_len; i++)
+    {
+        for (int j = 0; j < 4; j += 2)
+        {
+            // write_buf          0   1   2   3   4   5  ... 2046   2047    0    1    ...
+            // pix_row_ pix_col_  0   0   0   1   0   2  ... 0      1023    0    1024 ...
+            // wr_vec             0   1   2   3   4   5  ... 2046   2047    2048 2049 ...
+            //  wr_vec[0---2047]   [2048---4095]
+            int k = 2048 * pix_cnt;
+            dma_operator->write_buf[i * 4 + j] = wr_vec[i * 4 + j + k];
+            dma_operator->write_buf[i * 4 + j + 1] = wr_vec[i * 4 + j + 1 + k];
+            // printf("%d\n",i * 4 + j);
+            // printf("%d\n",i * 4 + j + 1);
+            // printf("0x%0x\n",wr_vec[i * 4 + j + k]);
+            // printf("0x%0x\n",wr_vec[i * 4 + j + 1 + k]);
+            // usleep(100000);
+        }
+    }
+    pix_cnt = pix_cnt == 2024 ? 0 : pix_cnt + 1;
 
     ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);        /* 地址映射,以及数据缓存申请 */
     ioctl(pcie_fd, PCI_WRITE_TO_KERNEL_CMD, dma_operator); /* 将数据写入内核缓存 */
@@ -108,9 +130,10 @@ void DMA::dma_rd()
 
     for (int i = 0; i < dma_operator->current_len; i++)
     {
-        // printf("dw_cnt = %d; write_data = 0x%02x%02x%02x%02x; read_data = 0x%02x%02x%02x%02x\n", i + 1,
-        //        dma_operator->write_buf[i * 4], dma_operator->write_buf[i * 4 + 1], dma_operator->write_buf[i * 4 + 2], dma_operator->write_buf[i * 4 + 3],
-        //        dma_operator->read_buf[i * 4], dma_operator->read_buf[i * 4 + 1], dma_operator->read_buf[i * 4 + 2], dma_operator->read_buf[i * 4 + 3]);
+        printf("dw_cnt = %d; write_data = 0x%02x%02x%02x%02x; read_data = 0x%02x%02x%02x%02x;\n total_cnt = %d;\n", i + 1,
+               dma_operator->write_buf[i * 4], dma_operator->write_buf[i * 4 + 1], dma_operator->write_buf[i * 4 + 2], dma_operator->write_buf[i * 4 + 3],
+               dma_operator->read_buf[i * 4], dma_operator->read_buf[i * 4 + 1], dma_operator->read_buf[i * 4 + 2], dma_operator->read_buf[i * 4 + 3],
+               pix_cnt);
         for (int j = 0; j < 4; j += 2)
         {
             uint16_t pix = (static_cast<uint16_t>(dma_operator->read_buf[i * 4 + j + 1]) << 8) | static_cast<uint16_t>(dma_operator->read_buf[i * 4 + j]);
@@ -120,23 +143,41 @@ void DMA::dma_rd()
             img.at<cv::Vec3b>(pix_row, pix_col) = cv::Vec3b(b << 3, g << 2, r << 3);
             if ((pix_col + 1) * (pix_row + 1) == TOTAL_FRAME_PIX)
             {
+                a = 1;
+                // 准备获取处理好的图像数据,清空之前的图像数据
+                wr_vec.clear();
                 // 开一个线程去处理图像，获取图像的线程根据处理图像的线程是否完成去准备一帧图像，若完成则直接传入，未完成则继续接收但只继续接收一帧
                 // finish默认为true，传入pix_buffer在dma_wr中缓存pix_buffer并 拉低finish，清空pix_buffer,并准备好下一帧图像，阻塞等待dma_wr完成
                 // while (process_finish)
                 // {
                 // 1920*1080*16 / 8 = 4147200 B / 2048 B = 2025
                 cv::Mat prmat = inf.base_exam(img);
-                // float scale = 0.8;
-                // cv::resize(prmat, prmat, cv::Size(prmat.cols * scale, prmat.rows * scale));
-                // cv::imshow("Inference", prmat);
+                float scale = 0.8;
+                cv::resize(prmat, prmat, cv::Size(prmat.cols * scale, prmat.rows * scale));
+                cv::imshow("Inference", prmat);
+                cv::waitKey(-1);
+                cv::destroyAllWindows();
 
-                // cv::waitKey(-1);
-                // cv::destroyAllWindows();
-
+                // BGR888转换成BGR565
+                for (int i = 0; i < 1080; i++)
+                {
+                    uint8_t *src_row = prmat.ptr<uint8_t>(i);
+                    for (int j = 0; j < 1920; j++)
+                    {
+                        uint8_t b = src_row[j * 3];
+                        uint8_t g = src_row[j * 3 + 1];
+                        uint8_t r = src_row[j * 3 + 2];
+                        ushort RGB565 = (r & 0xf8) << 8 | (g & 0xf8) << 3 | (b & 0xf8) >> 3;
+                        printf("rgb565 0x%02x\n", RGB565);
+                        uint8_t m = (RGB565 & 0xFF00) >> 8; // 取高字节,右移8位
+                        wr_vec.push_back(m);
+                        uint8_t n = RGB565 & 0x00FF; // 取低字节
+                        wr_vec.push_back(n);
+                    }
+                }
                 // break;
                 // }
             }
-            // cout << pix_row << pix_col << endl;
             pix_col = pix_col == 1919 ? 0 : pix_col + 1;
             pix_row = pix_col == 1919 && pix_row == 1079 ? 0 : pix_col == 1919 ? pix_row + 1
                                                                                : pix_row;
