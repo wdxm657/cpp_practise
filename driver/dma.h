@@ -26,7 +26,8 @@ public:
     DMA();
     ~DMA();
 
-    void set_dma_oper(std::vector<unsigned int> values, int fd);
+    void dma_auto_process(std::vector<unsigned int> values, int fd, cv::Mat &dst);
+    void resume();
 
 private:
     // dma operator
@@ -65,9 +66,10 @@ private:
     ** 输出参数:    无
     ** 返回参数:    无
     ****************************************************************************/
-    void dma_auto_process();
-    void dma_rd();
+    void dma_auto(cv::Mat &dst);
+    void simulation_fram(bool begin);
     void dma_wr();
+    void dma_rd(cv::Mat &dst);
 };
 
 #endif // DMA_H

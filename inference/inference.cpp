@@ -1,11 +1,11 @@
 #include "inference.h"
 
 Inference::Inference()
-    : projectBasePath("/home/wdxm/code/yolov8_CPP_Inference_OpenCV_ONNX")
+    : projectBasePath("/home/wdxm/code/cpp_practise")
 {
-    modelPath = projectBasePath + "/source/models/yolov8s.onnx";
+    modelPath = projectBasePath + "/source/models/best.onnx";
     modelShape = cv::Size(640, 480);
-    classesPath = projectBasePath + "/source/classes/classes.txt";
+    classesPath = projectBasePath + "/source/classes/class.txt";
     cudaEnabled = true;
 
     loadOnnxNetwork();

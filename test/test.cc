@@ -9,7 +9,7 @@ int main()
     // 将向量对象填充为随机值
     for (int i = 0; i < vec.size(); i++)
     {
-        vec[i] = 0xdb4f;
+        vec[i] = 0x7b5b;
     }
 
     // 创建空的 cv::Mat 对象

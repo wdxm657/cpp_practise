@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     // 创建主窗口
     MainWindow window;
     window.set_title("Input Example");
-    window.set_default_size(420, 300);
+    window.set_default_size(1580, 960);
 
     // 显示窗口及其所有子控件
     return app->run(window);

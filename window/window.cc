@@ -4,7 +4,7 @@ MainWindow::MainWindow()
     : driver()
 {
   const std::vector<std::string> titles = {"test num", "Start size", "End size", "Packet Step", "other1", "other2"};
-  const std::vector<std::string> default_values = {"2026", "2048", "2048", "0", "0", "0"};
+  const std::vector<std::string> default_values = {"2025", "2048", "2048", "0", "0", "0"};
   // 创建网格容器
   add(grid_);
 
@@ -25,24 +25,73 @@ MainWindow::MainWindow()
     entries_.push_back(entry);
   }
 
-  // 创建滚动窗口和文本视图
-  scrolled_window_.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
-  grid_.attach(scrolled_window_, 2, 1, 1, 5);
-
-  text_view_.set_editable(false);
-  text_view_.set_cursor_visible(false);
-  scrolled_window_.add(text_view_);
+  grid_.attach(image_, 3, 0, 100, 70);
 
   // 创建按钮
   button_.set_label("Get Values");
   grid_.attach(button_, 2, 0, 1, 1);
 
+  // 创建按钮
+  button_1.set_label("Resume");
+  grid_.attach(button_1, 2, 1, 1, 1);
+
   // 将输入框数组添加到按钮回调函数中
   button_.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_clicked));
+  button_1.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_clicked_1));
 
-  // inf.base_exam();
+  // 创建图像处理器对象
+  image_processor = new ImageProcessor();
+
+  // 创建图像接收线程，在该线程中接收摄像头的图像数据
+  std::thread receive_thread([&]()
+                             {
+          while (true)
+          {
+            // 从输入框中获取值
+          std::vector<unsigned int> values;
+          for (auto entry : entries_)
+          {
+            unsigned int value = std::stoul(entry->get_text().raw());
+            values.push_back(value);
+          }
+
+          // 设置dma操作  根据传入的 values 决定该怎样获取图像数据
+          // cv::Mat dst = cv::imread("/home/wdxm/code/cpp_practise/test.png");
+          cv::Mat dst;
+          driver.dma.dma_auto_process(values, driver.getfd(), dst);
+                image_processor->store_frame(dst); 
+          } });
+
+  // 创建图像显示线程，在该线程中从缓冲区中获取图像数据，并将其显示在Gtk::Image控件中
+  std::thread display_thread([&]()
+                             {
+      bool start_processing = false; // 标志变量，用于指示是否需要启动图像处理线程
+      while (true) {
+          cv::Mat frame = image_processor->get_frame();
+          cv::resize(frame, frame, cv::Size(1280, 720));
+          auto size = frame.size();
+          auto pixbuf = Gdk::Pixbuf::create_from_data(frame.data, Gdk::COLORSPACE_RGB, frame.channels() == 4, 8, size.width, size.height, (int)frame.step);
+          // 如果标志变量为true，则启动图像处理线程
+          if (start_processing) {
+              std::cout << "start_processing!!!" << std::endl;
+              image_.set(pixbuf);
+              // 将标志变量重置为false
+              start_processing = false;
+          }
+
+          // 检查是否需要启动图像处理线程
+          if (start_flag) {
+              start_processing = true;
+              // start_flag = false;
+          }
+      } });
+
   // 显示所有子控件
   show_all_children();
+  // 在新线程中执行图像接收和图像显示操作时，主线程可以继续响应其他控件的事件
+  receive_thread.detach();
+  display_thread.detach();
+  // inf.base_exam();
 }
 
 MainWindow::~MainWindow()
@@ -60,29 +109,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_button_clicked()
 {
-  // 从输入框中获取值
-  std::vector<unsigned int> values;
-  for (auto entry : entries_)
-  {
-    unsigned int value = std::stoul(entry->get_text().raw());
-    values.push_back(value);
-  }
+  start_flag = !start_flag;
+  std::cout << "button clicked!!! start_flag " << start_flag << std::endl;
+}
 
-  // 设置dma操作  根据传入的 values 决定该怎样获取图像数据
-  driver.dma.set_dma_oper(values, driver.getfd());
-
-  // // 将值输出到文本视图中
-  // Glib::ustring output;
-  // for (auto value : values)
-  // {
-  //   output += value + "\n";
-  // }
-
-  // text_view_.get_buffer()->set_text(output);
-
-  // 将值输出到控制台中
-  for (auto value : values)
-  {
-    // std::cout << value << std::endl;
-  }
+void MainWindow::on_button_clicked_1()
+{
+  driver.dma.resume();
 }
