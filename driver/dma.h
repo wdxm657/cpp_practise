@@ -77,6 +77,8 @@ private:
     void simulation_fram(bool begin);
     void dma_wr();
     void dma_rd(cv::Mat &dst);
+    void pcie_initial();
+    void pcie_rw();
 };
 
 #endif // DMA_H

@@ -31,6 +31,7 @@ void DMA::dma_auto_process(int fd, cv::Mat &dst)
     cout << "dma auto process bigin" << endl;
 
     int temp_cnt = 0;
+    pcie_initial();
     for (int i = 0; i < test_num; i++)
     {
         dma_auto(dst);
@@ -53,6 +54,13 @@ void DMA::dma_auto(cv::Mat &dst)
 
     dma_wr();
 
+    pcie_rw();
+
+    dma_rd(dst);
+}
+
+void DMA::pcie_rw()
+{
     ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);        /* 地址映射,以及数据缓存申请 */
     ioctl(pcie_fd, PCI_WRITE_TO_KERNEL_CMD, dma_operator); /* 将数据写入内核缓存 */
     ioctl(pcie_fd, PCI_DMA_READ_CMD, dma_operator);        /* 将数据写入设备（DMA读） */
@@ -61,14 +69,29 @@ void DMA::dma_auto(cv::Mat &dst)
     usleep(1);
     ioctl(pcie_fd, PCI_READ_FROM_KERNEL_CMD, dma_operator); /* 将数据从内核读出 */
     ioctl(pcie_fd, PCI_UMAP_ADDR_CMD, dma_operator);        /* 释放数据缓存 */
+}
 
-    dma_rd(dst);
+void DMA::pcie_initial()
+{
+    dma_operator->current_len = 4;
+    dma_operator->offset_addr = 0;
+    // 4DW = 128bit   16 * 8 = 128
+    for (int i = 0; i < 16; i++)
+    {
+        dma_operator->write_buf[i] = PCIE_RDY;
+    }
+    pcie_rw();
+
+    dma_operator->current_len = start + step;
+    dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
+    dma_operator->offset_addr = 0;
 }
 
 void DMA::resume()
 {
     simulation_fram(false);
 }
+
 void DMA::simulation_fram(bool begin)
 {
     // 模拟一帧开始的信号
@@ -79,15 +102,7 @@ void DMA::simulation_fram(bool begin)
     {
         dma_operator->write_buf[i] = begin ? PCIE_RDY : PCIE_U_RDY;
     }
-    // printf("hsync simulation\n");
-    ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);        /* 地址映射,以及数据缓存申请 */
-    ioctl(pcie_fd, PCI_WRITE_TO_KERNEL_CMD, dma_operator); /* 将数据写入内核缓存 */
-    ioctl(pcie_fd, PCI_DMA_READ_CMD, dma_operator);        /* 将数据写入设备（DMA读） */
-    usleep(1);
-    ioctl(pcie_fd, PCI_DMA_WRITE_CMD, dma_operator); /* 将数据从设备读出到内核（DMA写） */
-    usleep(1);
-    ioctl(pcie_fd, PCI_READ_FROM_KERNEL_CMD, dma_operator); /* 将数据从内核读出 */
-    ioctl(pcie_fd, PCI_UMAP_ADDR_CMD, dma_operator);        /* 释放数据缓存 */
+    pcie_rw();
 
     dma_operator->current_len = start + step;
     dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
@@ -97,12 +112,12 @@ void DMA::simulation_fram(bool begin)
 
 void DMA::dma_wr()
 {
-    if (pix_cnt == 0)
-    {
-        simulation_fram(true);
-    }
+    // if (pix_cnt == 0)
+    // {
+    //     simulation_fram(true);
+    // }
     memset(dma_operator->write_buf, 0, DMA_MAX_PACKET_SIZE);
-    pix_cnt = pix_cnt == (TOTAL_SEND_TIME - 1) ? 0 : pix_cnt + 1;
+    // pix_cnt = pix_cnt == (TOTAL_SEND_TIME - 1) ? 0 : pix_cnt + 1;
 }
 
 void DMA::dma_rd(cv::Mat &dst)
@@ -122,8 +137,7 @@ void DMA::dma_rd(cv::Mat &dst)
             img.at<cv::Vec3b>(pix_row, pix_col) = cv::Vec3b(r << 3, g << 2, b << 3);
             if (pix_col == (H_NUM - 1) && pix_row == (V_NUM - 1))
             {
-                simulation_fram(false);
-                // 1920*1080*16 / 8 = 4147200 B / 512 DW = 8100 / 4 = 2025
+                // simulation_fram(false);
                 // dst = img;
                 dst = inf.base_exam(img);
             }
