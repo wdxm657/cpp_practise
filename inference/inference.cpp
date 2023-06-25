@@ -3,7 +3,7 @@
 Inference::Inference()
     : projectBasePath("/home/wdxm/code/cpp_practise")
 {
-    modelPath = projectBasePath + "/source/models/best.onnx";
+    modelPath = projectBasePath + "/source/models/b6.onnx";
     modelShape = cv::Size(640, 480);
     classesPath = projectBasePath + "/source/classes/class.txt";
     cudaEnabled = true;

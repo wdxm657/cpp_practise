@@ -22,11 +22,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 # !GTK
 
-include_directories(
-#     ${PROJECT_SOURCE_DIR}/interface
-#     ${PROJECT_SOURCE_DIR}/driver
-)
-
 add_subdirectory(inference)
 add_subdirectory(driver)
 add_subdirectory(window)

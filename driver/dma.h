@@ -26,7 +26,7 @@ public:
     DMA();
     ~DMA();
 
-    void dma_auto_process(std::vector<unsigned int> values, int fd, cv::Mat &dst);
+    void dma_auto_process(int fd, cv::Mat &dst);
     void resume();
 
 private:
