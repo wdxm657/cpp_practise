@@ -3,9 +3,9 @@
 Inference::Inference()
     : projectBasePath("/home/wdxm/code/cpp_practise")
 {
-    modelPath = projectBasePath + "/source/models/b6.onnx";
+    modelPath = projectBasePath + "/source/models/yolov5s.onnx";
     modelShape = cv::Size(640, 480);
-    classesPath = projectBasePath + "/source/classes/class.txt";
+    classesPath = projectBasePath + "/source/classes/classes.txt";
     cudaEnabled = true;
 
     loadOnnxNetwork();

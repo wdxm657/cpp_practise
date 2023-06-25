@@ -34,8 +34,8 @@ MainWindow::MainWindow()
                              {
           while (true)
           {
-          // cv::Mat dst = cv::imread("/home/wdxm/code/cpp_practise/test.png");
-          cv::Mat dst;
+          cv::Mat dst = cv::imread("/home/wdxm/code/cpp_practise/source/data/bus.jpg");
+          // cv::Mat dst;
           driver.dma.dma_auto_process( driver.getfd(), dst);
                 image_processor->store_frame(dst); 
           } });

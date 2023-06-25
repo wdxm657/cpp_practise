@@ -1,9 +1,9 @@
 #include "dma.h"
 
 DMA::DMA()
-    : test_num(2025),
-      start(2048),
-      end(2048),
+    : test_num(TOTAL_SEND_TIME), 
+      start(DW_NUM << 2),    // 512DW
+      end(DW_NUM << 2),
       step(0),
       write_cnt(0),
       read_cnt(0),
@@ -14,8 +14,7 @@ DMA::DMA()
       pix_row(0),
       pix_cnt(0),
       inf(),
-      wr_vec(TOTAL_FRAME_PIX * 2, 0),
-      img(1080, 1920, CV_8UC3)
+      img(V_NUM, H_NUM, CV_8UC3)
 {
     dma_operator = new dma_oper;
     memset(dma_operator, 0, sizeof(dma_oper));
@@ -40,7 +39,7 @@ void DMA::dma_auto_process(int fd, cv::Mat &dst)
     }
     if (temp_cnt == test_num)
     {
-        cout << "A total of " << test_num / 2025 << " frames of images were read" << endl;
+        cout << "A total of " << test_num / TOTAL_SEND_TIME << " frames of images were read" << endl;
         // button_flag.dma_auto = set_button_text(AUTO_BUTTON_NUM, button_flag.dma_auto);
     }
 }
@@ -75,9 +74,10 @@ void DMA::simulation_fram(bool begin)
     // 模拟一帧开始的信号
     dma_operator->current_len = 4;
     dma_operator->offset_addr = 0;
+    // 4DW = 128bit   16 * 8 = 128
     for (int i = 0; i < 16; i++)
     {
-        dma_operator->write_buf[i] = begin ? 0x88 : 0x99;
+        dma_operator->write_buf[i] = begin ? PCIE_RDY : PCIE_U_RDY;
     }
     // printf("hsync simulation\n");
     ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);        /* 地址映射,以及数据缓存申请 */
@@ -101,8 +101,8 @@ void DMA::dma_wr()
     {
         simulation_fram(true);
     }
-    memset(dma_operator->write_buf, 0, 4096);
-    pix_cnt = pix_cnt == 2024 ? 0 : pix_cnt + 1;
+    memset(dma_operator->write_buf, 0, DMA_MAX_PACKET_SIZE);
+    pix_cnt = pix_cnt == (TOTAL_SEND_TIME - 1) ? 0 : pix_cnt + 1;
 }
 
 void DMA::dma_rd(cv::Mat &dst)
@@ -120,15 +120,15 @@ void DMA::dma_rd(cv::Mat &dst)
             uint8_t g = (pix >> 5) & 0x3f;
             uint8_t b = pix & 0x1f;
             img.at<cv::Vec3b>(pix_row, pix_col) = cv::Vec3b(r << 3, g << 2, b << 3);
-            if (pix_col == 1919 && pix_row == 1079)
+            if (pix_col == (H_NUM - 1) && pix_row == (V_NUM - 1))
             {
                 simulation_fram(false);
                 // 1920*1080*16 / 8 = 4147200 B / 512 DW = 8100 / 4 = 2025
                 // dst = img;
                 dst = inf.base_exam(img);
             }
-            pix_col = pix_col == 1919 ? 0 : pix_col + 1;
-            pix_row = pix_col == 1919 && pix_row == 1079 ? 0 : pix_col == 1919 ? pix_row + 1
+            pix_col = pix_col == (H_NUM - 1) ? 0 : pix_col + 1;
+            pix_row = pix_col == (H_NUM - 1) && pix_row == (V_NUM - 1) ? 0 : pix_col == (H_NUM - 1) ? pix_row + 1
                                                                                : pix_row;
         }
     }

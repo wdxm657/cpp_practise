@@ -8,6 +8,14 @@
 
 // 计算数据总长度  1个数据:32位 2个像素     1次512个数据  总共2025次 = 1920*1080
 #define TOTAL_FRAME_PIX 2 * 512 * 2025
+#define H_NUM 1280
+#define V_NUM 720
+#define DW_NUM 512
+// 1920*1080/1024(512DW = 1024pix) = 2025
+// 1280*720/1024(512DW = 1024pix)  = 900
+#define TOTAL_SEND_TIME ((H_NUM * V_NUM) / (DW_NUM * 2)) 
+#define PCIE_RDY 0x88
+#define PCIE_U_RDY 0x99
 
 struct dma_oper
 {
@@ -54,7 +62,6 @@ private:
     int pix_cnt;
 
     cv::Mat img;
-    std::vector<uint8_t> wr_vec;
     int pt;
     bool process_finish;
 
