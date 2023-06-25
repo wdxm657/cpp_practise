@@ -35,6 +35,7 @@ public:
     ~DMA();
 
     void dma_auto_process(int fd, cv::Mat &dst);
+    void swicth_pcie_state(bool rdy);
     void resume();
 
 private:
@@ -52,9 +53,6 @@ private:
     // driver
     int pcie_fd;
 
-    // dnn inf
-    Inference inf;
-
     // buffer
     int pix_col;
     int pix_row;
@@ -64,6 +62,9 @@ private:
     cv::Mat img;
     int pt;
     bool process_finish;
+
+    bool pcie_rdy;
+    bool img_finish;
 
     /**************************************************************************
     ** 函数名称:    dma_auto_process
@@ -77,7 +78,7 @@ private:
     void simulation_fram(bool begin);
     void dma_wr();
     void dma_rd(cv::Mat &dst);
-    void pcie_initial();
+    void pcie_initial(bool rdy);
     void pcie_rw();
 };
 

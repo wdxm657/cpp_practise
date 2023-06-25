@@ -1,7 +1,8 @@
 #include "window.h"
 
 MainWindow::MainWindow()
-    : driver()
+    : driver(),
+    inf()
 {
   const std::vector<std::string> titles = {"test num", "Start size", "End size", "Packet Step", "other1", "other2"};
   const std::vector<std::string> default_values = {"2025", "2048", "2048", "0", "0", "0"};
@@ -19,7 +20,7 @@ MainWindow::MainWindow()
   grid_.attach(button_, 1, 0, 1, 1);
 
   // 创建按钮
-  button_1.set_label("Resume");
+  button_1.set_label("PCIE Resume");
   grid_.attach(button_1, 1, 1, 1, 1);
 
   // 将输入框数组添加到按钮回调函数中
@@ -35,6 +36,7 @@ MainWindow::MainWindow()
           while (true)
           {
           cv::Mat dst = cv::imread("/home/wdxm/code/cpp_practise/source/data/bus.jpg");
+          // driver.dma.swicth_pcie_state(dma_flag);
           // cv::Mat dst;
           driver.dma.dma_auto_process( driver.getfd(), dst);
                 image_processor->store_frame(dst); 
@@ -45,13 +47,14 @@ MainWindow::MainWindow()
                              {
       bool start_processing = false; // 标志变量，用于指示是否需要启动图像处理线程
       while (true) {
-          cv::Mat frame = image_processor->get_frame();
-          cv::resize(frame, frame, cv::Size(1700, 1000));
-          auto size = frame.size();
-          auto pixbuf = Gdk::Pixbuf::create_from_data(frame.data, Gdk::COLORSPACE_RGB, frame.channels() == 4, 8, size.width, size.height, (int)frame.step);
           // 如果标志变量为true，则启动图像处理线程
           if (start_processing) {
               std::cout << "start_processing!!!" << std::endl;
+              cv::Mat frame = image_processor->get_frame();
+              frame = inf.base_exam(frame);
+              // cv::resize(frame, frame, cv::Size(1700, 1000));
+              auto size = frame.size();
+              auto pixbuf = Gdk::Pixbuf::create_from_data(frame.data, Gdk::COLORSPACE_RGB, frame.channels() == 4, 8, size.width, size.height, (int)frame.step);
               image_.set(pixbuf);
               // 将标志变量重置为false
               start_processing = false;
@@ -93,5 +96,6 @@ void MainWindow::on_button_clicked()
 
 void MainWindow::on_button_clicked_1()
 {
-  driver.dma.resume();
+  dma_flag = !dma_flag;
+  std::cout << "button clicked!!! dma_flag " << dma_flag << std::endl;
 }

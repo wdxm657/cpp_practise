@@ -34,8 +34,11 @@ protected:
   Gtk::Image image_;
 
   Driver driver;
+  // dnn inf
+  Inference inf;
   ImageProcessor *image_processor;
   bool start_flag = false; // 标志变量，用于指示是否需要启动图像处理线程
+  bool dma_flag   = false; // 标志变量，用于指示是否需要启动PCIE接受HDMI数据
 };
 
 #endif // MAIN_WINDOW_H
