@@ -19,6 +19,7 @@ public:
 protected:
   void on_button_clicked();
   void on_button_clicked_1();
+  void on_button_clicked_2();
 
   std::vector<std::string> titles_;
   std::vector<std::string> default_values_;
@@ -28,6 +29,7 @@ protected:
   std::vector<Gtk::Entry *> entries_;
   Gtk::Button button_;
   Gtk::Button button_1;
+  Gtk::Button button_2;
 
   Gtk::ScrolledWindow scrolled_window_;
   Gtk::TextView text_view_;
@@ -39,6 +41,7 @@ protected:
   ImageProcessor *image_processor;
   bool start_flag = false; // 标志变量，用于指示是否需要启动图像处理线程
   bool dma_flag   = false; // 标志变量，用于指示是否需要启动PCIE接受HDMI数据
+  bool map_flag   = false; // 标志变量，用于指示是否需要打开或关闭PCIE DMA MAP
 };
 
 #endif // MAIN_WINDOW_H

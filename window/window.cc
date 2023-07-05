@@ -16,16 +16,21 @@ MainWindow::MainWindow()
   grid_.attach(image_, 2, 0, 1, 3);
 
   // 创建按钮
-  button_.set_label("Get Values");
+  button_.set_label("INFERENCE OPEN");
   grid_.attach(button_, 1, 0, 1, 1);
 
   // 创建按钮
-  button_1.set_label("PCIE Resume");
+  button_1.set_label("PCIE DMA OPEN");
   grid_.attach(button_1, 1, 1, 1, 1);
+
+    // 创建按钮
+  button_2.set_label("PCIE DMA MAP OPEN");
+  grid_.attach(button_2, 1, 2, 1, 1);
 
   // 将输入框数组添加到按钮回调函数中
   button_.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_clicked));
   button_1.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_clicked_1));
+  button_2.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_clicked_2));
 
   // 创建图像处理器对象
   image_processor = new ImageProcessor();
@@ -36,10 +41,18 @@ MainWindow::MainWindow()
           while (true)
           {
           cv::Mat dst = cv::imread("/home/wdxm/code/cpp_practise/source/data/bus.jpg");
-          // driver.dma.swicth_pcie_state(dma_flag);
+          if (dma_flag)
+          {
+            driver.dma.dma_auto_process( driver.getfd(), dst);
+                  image_processor->store_frame(dst); 
+            //下面这行打开的话按钮点一次执行一次，不打开则点击开启，再次点击关闭
+            // dma_flag = false;
+          }
+          // else 
+            // driver.dma.PCI_MAP(false, driver.getfd());
+          
           // cv::Mat dst;
-          driver.dma.dma_auto_process( driver.getfd(), dst);
-                image_processor->store_frame(dst); 
+
           } });
 
   // 创建图像显示线程，在该线程中从缓冲区中获取图像数据，并将其显示在Gtk::Image控件中
@@ -49,9 +62,8 @@ MainWindow::MainWindow()
       while (true) {
           // 如果标志变量为true，则启动图像处理线程
           if (start_processing) {
-              std::cout << "start_processing!!!" << std::endl;
               cv::Mat frame = image_processor->get_frame();
-              frame = inf.base_exam(frame);
+              // frame = inf.base_exam(frame);
               // cv::resize(frame, frame, cv::Size(1700, 1000));
               auto size = frame.size();
               auto pixbuf = Gdk::Pixbuf::create_from_data(frame.data, Gdk::COLORSPACE_RGB, frame.channels() == 4, 8, size.width, size.height, (int)frame.step);
@@ -91,11 +103,33 @@ MainWindow::~MainWindow()
 void MainWindow::on_button_clicked()
 {
   start_flag = !start_flag;
-  std::cout << "button clicked!!! start_flag " << start_flag << std::endl;
+  if (start_flag)
+  {
+    button_.set_label("INFERENCE CLOSE");
+    /* code */
+  }else
+    button_.set_label("INFERENCE OPEN");
 }
 
 void MainWindow::on_button_clicked_1()
 {
   dma_flag = !dma_flag;
-  std::cout << "button clicked!!! dma_flag " << dma_flag << std::endl;
+  if (dma_flag)
+  {
+    button_1.set_label("PCIE DMA CLOSE");
+    /* code */
+  }else
+    button_1.set_label("PCIE DMA OPEN");
+}
+
+void MainWindow::on_button_clicked_2()
+{
+  map_flag = !map_flag;
+  driver.dma.PCI_MAP(map_flag , driver.getfd());
+  if (map_flag)
+  {
+    button_2.set_label("DMA MAP CLOSE");
+    /* code */
+  }else
+    button_2.set_label("DMA MAP OPEN");
 }

@@ -1,24 +1,17 @@
 #include "dma.h"
+typedef std::chrono::high_resolution_clock Clock;
+#define NCLK_DEBUG
 
 DMA::DMA()
-    : test_num(TOTAL_SEND_TIME), 
-      start(DW_NUM << 2),    // 512DW
-      end(DW_NUM << 2),
-      step(0),
-      write_cnt(0),
-      read_cnt(0),
-      pcie_fd(0),
-      pt(0),
-      process_finish(true),
-      pix_col(0),
+    : pcie_fd(0),
       pix_row(0),
-      pix_cnt(0),
-      pcie_rdy(false),
       img_finish(false),
       img(V_NUM, H_NUM, CV_8UC3)
 {
     dma_operator = new dma_oper;
     memset(dma_operator, 0, sizeof(dma_oper));
+    dma_operator->current_len = DW_NUM; // DW
+    // memset(dma_operator->write_buf, 0, DMA_MAX_PACKET_SIZE);
 }
 
 DMA::~DMA()
@@ -26,97 +19,143 @@ DMA::~DMA()
     delete dma_operator;
 }
 
+void print_clk(std::string str, std::chrono::_V2::system_clock::time_point t1, std::chrono::_V2::system_clock::time_point t2){
+    std::cout << str << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << "ns" << std::endl;
+}
+
 void DMA::dma_auto_process(int fd, cv::Mat &dst)
 {
-    // if(pcie_rdy){
         pcie_fd = fd;
-        img_finish = false;
-        // cout << "dma auto process bigin" << endl;
-
-        int temp_cnt = 0;
         while (!img_finish)
         {
+            #ifdef NCLK_DEBUG
+                auto t1 = Clock::now();
+            #endif
             dma_auto(dst);
+            #ifdef NCLK_DEBUG
+                auto t2 = Clock::now();
+                print_clk("one line dma used: ", t1, t2);
+                // cout << "finish " << img_finish << endl;
+            #endif
+            // sleep(1);
         }
-        
-        // cout << "A total of " << test_num / TOTAL_SEND_TIME << " frames of images were read" << endl;
-    // }
+        // cout << "one frame receive down" << endl;
+        img_finish = false;
 }
 
 void DMA::dma_auto(cv::Mat &dst)
 {
-    dma_operator->current_len = start + step;
-    dma_operator->current_len = (dma_operator->current_len > end) ? end : dma_operator->current_len;
-    dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
-    dma_operator->offset_addr = 0;
-
-    memset(dma_operator->write_buf, 0, DMA_MAX_PACKET_SIZE);
-    // dma_wr();
-
     pcie_rw();
 
-    dma_rd(dst);
+    // 1DW/2pix  total 640*2=1280
+    int pix_col = 0;
+    #ifndef NCLK_DEBUG
+        auto t1 = Clock::now();
+    #endif
+    for (int i = 0; i < DW_NUM; i++)
+    {
+        for (int j = 0; j < 4; j += 2)
+        {
+            uint16_t pix = (static_cast<uint16_t>(dma_operator->read_buf[i * 4 + j + 1]) << 8) | static_cast<uint16_t>(dma_operator->read_buf[i * 4 + j]);
+            uint8_t r = (pix >> 11) & 0x1f;
+            uint8_t g = (pix >> 5) & 0x3f;
+            uint8_t b = pix & 0x1f;
+            img.at<cv::Vec3b>(pix_row, pix_col) = cv::Vec3b(r << 3, g << 2, b << 3);
+            pix_col == (H_NUM - 1) ? pix_col = 0 : pix_col++;
+            if (pix_col == 0 && pix_row == (V_NUM - 1))
+            {
+                dst = img;
+                img_finish = true;
+                pix_row = 0;
+                return;
+            }
+        }
+    }
+    #ifndef NCLK_DEBUG
+        auto t2 = Clock::now();
+        print_clk("data parse used: ", t1, t2);
+    #endif
+    pix_row++;
+}
+
+void DMA::PCI_MAP(bool flag, int fd){
+    // if (flag){
+    //     ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);         /* 地址映射,以及数据缓存申请 */
+    // }
+    // else 
+    //     ioctl(pcie_fd, PCI_UMAP_ADDR_CMD, dma_operator);        /* 释放数据缓存 */
 }
 
 void DMA::pcie_rw()
 {
-    ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);        /* 地址映射,以及数据缓存申请 */
-    ioctl(pcie_fd, PCI_WRITE_TO_KERNEL_CMD, dma_operator); /* 将数据写入内核缓存 */
-    ioctl(pcie_fd, PCI_DMA_READ_CMD, dma_operator);        /* 将数据写入设备（DMA读） */
-    usleep(1000);
-    ioctl(pcie_fd, PCI_DMA_WRITE_CMD, dma_operator); /* 将数据从设备读出到内核（DMA写） */
-    usleep(1000);
-    ioctl(pcie_fd, PCI_READ_FROM_KERNEL_CMD, dma_operator); /* 将数据从内核读出 */
-    ioctl(pcie_fd, PCI_UMAP_ADDR_CMD, dma_operator);        /* 释放数据缓存 */
-}
+    #ifndef NCLK_DEBUG
+        auto t1 = Clock::now();
+    #endif
+    ioctl(pcie_fd, PCI_MAP_ADDR_CMD, dma_operator);         /* 地址映射,以及数据缓存申请 */
+    #ifndef NCLK_DEBUG
+        auto t2 = Clock::now();
+        print_clk("PCI_MAP_ADDR_CMD used: ", t1, t2);
+    #endif
 
-void DMA::pcie_initial(bool rdy)
-{
-    dma_operator->current_len = 4;
-    dma_operator->offset_addr = 0;
-    // 4DW = 128bit   16 * 8 = 128
-    for (int i = 0; i < 16; i++)
+    #ifndef NCLK_DEBUG
+        t1 = Clock::now();
+    #endif
+    ioctl(pcie_fd, PCI_DMA_WRITE_CMD, dma_operator);        /* 将数据从设备读出到内核（DMA写） */
+    #ifndef NCLK_DEBUG
+        t2= Clock::now();
+        print_clk("PCI_DMA_WRITE_CMD used: ", t1, t2);
+    #endif
+
+    #ifndef NCLK_DEBUG
+        t1 = Clock::now();
+    #endif
+    int i = 0;
+    while (i < 100000)
     {
-        dma_operator->write_buf[i] = rdy ? PCIE_RDY : PCIE_U_RDY;
+        i++;
     }
-    pcie_rw();
+    #ifndef NCLK_DEBUG
+        t2= Clock::now();
+        print_clk("count used: ", t1, t2);
+    #endif
 
-    dma_operator->current_len = start + step;
-    dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
-    dma_operator->offset_addr = 0;
+    #ifndef NCLK_DEBUG
+        t1 = Clock::now();
+    #endif
+    ioctl(pcie_fd, PCI_READ_FROM_KERNEL_CMD, dma_operator); /* 将数据从内核读出 */
+    #ifndef NCLK_DEBUG
+        t2= Clock::now();
+        print_clk("PCI_READ_FROM_KERNEL_CMD used: ", t1, t2);
+    #endif
+
+    #ifndef NCLK_DEBUG
+        t1 = Clock::now();
+    #endif
+    ioctl(pcie_fd, PCI_UMAP_ADDR_CMD, dma_operator);        /* 释放数据缓存 */
+    #ifndef NCLK_DEBUG
+        t2 = Clock::now();
+        print_clk("PCI_UMAP_ADDR_CMD used: ", t1, t2);
+    #endif
+    if (dma_operator->read_buf[4] == 0 && dma_operator->read_buf[5] == 0 \
+       && dma_operator->read_buf[6] == 0 && dma_operator->read_buf[7] == 0)
+    {
+        cout << "line error" << endl;
+    }
 }
 
-void DMA::swicth_pcie_state(bool rdy)
-{
-    if (pcie_rdy != rdy)
+void DMA::pcie_data_printf(){
+    for (int i = 0; i < dma_operator->current_len; i++)
     {
-        cout << "state switch" << endl;
-        pcie_rdy = rdy;
-        pcie_initial(pcie_rdy);
+        printf("dw_cnt = %d; write_data = 0x%02x%02x%02x%02x; read_data = 0x%02x%02x%02x%02x;\n", i + 1,
+               dma_operator->write_buf[i * 4], dma_operator->write_buf[i * 4 + 1], dma_operator->write_buf[i * 4 + 2], dma_operator->write_buf[i * 4 + 3],
+               dma_operator->read_buf[i * 4], dma_operator->read_buf[i * 4 + 1], dma_operator->read_buf[i * 4 + 2], dma_operator->read_buf[i * 4 + 3]);
     }
 }
 
 void DMA::resume()
 {
-    simulation_fram(false);
-}
-
-void DMA::simulation_fram(bool begin)
-{
-    // 模拟一帧开始的信号
-    dma_operator->current_len = 4;
-    dma_operator->offset_addr = 0;
-    // 4DW = 128bit   16 * 8 = 128
-    for (int i = 0; i < 16; i++)
-    {
-        dma_operator->write_buf[i] = begin ? PCIE_RDY : PCIE_U_RDY;
-    }
-    pcie_rw();
-
-    dma_operator->current_len = start + step;
-    dma_operator->current_len = dma_operator->current_len >> 2; /* 将字节转换成DW(四字节) */
-    dma_operator->offset_addr = 0;
-    usleep(1);
+    cv::Mat dst;
+    dma_auto(dst);
 }
 
 void DMA::dma_wr()
@@ -127,33 +166,4 @@ void DMA::dma_wr()
     // }
     memset(dma_operator->write_buf, 0x11, DMA_MAX_PACKET_SIZE);
     // pix_cnt = pix_cnt == (TOTAL_SEND_TIME - 1) ? 0 : pix_cnt + 1;
-}
-
-void DMA::dma_rd(cv::Mat &dst)
-{
-    for (int i = 0; i < dma_operator->current_len; i++)
-    {
-        printf("dw_cnt = %d; write_data = 0x%02x%02x%02x%02x; read_data = 0x%02x%02x%02x%02x;\ntotal_cnt = %d;\n", i + 1,
-               dma_operator->write_buf[i * 4], dma_operator->write_buf[i * 4 + 1], dma_operator->write_buf[i * 4 + 2], dma_operator->write_buf[i * 4 + 3],
-               dma_operator->read_buf[i * 4], dma_operator->read_buf[i * 4 + 1], dma_operator->read_buf[i * 4 + 2], dma_operator->read_buf[i * 4 + 3],
-               pix_cnt);
-        // for (int j = 0; j < 4; j += 2)
-        // {
-        //     uint16_t pix = (static_cast<uint16_t>(dma_operator->read_buf[i * 4 + j + 1]) << 8) | static_cast<uint16_t>(dma_operator->read_buf[i * 4 + j]);
-        //     uint8_t r = (pix >> 11) & 0x1f;
-        //     uint8_t g = (pix >> 5) & 0x3f;
-        //     uint8_t b = pix & 0x1f;
-        //     img.at<cv::Vec3b>(pix_row, pix_col) = cv::Vec3b(r << 3, g << 2, b << 3);
-        //     if (pix_col == (H_NUM - 1) && pix_row == (V_NUM - 1))
-        //     {
-        //         // simulation_fram(false);
-        //         dst = img;
-        //         // dst = inf.base_exam(img);
-        //         img_finish = true;
-        //     }
-        //     pix_col = pix_col == (H_NUM - 1) ? 0 : pix_col + 1;
-        //     pix_row = pix_col == (H_NUM - 1) && pix_row == (V_NUM - 1) ? 0 : pix_col == (H_NUM - 1) ? pix_row + 1
-        //                                                                        : pix_row;
-        // }
-    }
 }

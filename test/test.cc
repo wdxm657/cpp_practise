@@ -9,7 +9,7 @@ int main()
     // 将向量对象填充为随机值
     for (int i = 0; i < vec.size(); i++)
     {
-        vec[i] = 0x7b5b;
+        vec[i] = static_cast<uint16_t>(0xf8 << 8) | static_cast<uint16_t>(0x00);
     }
 
     // 创建空的 cv::Mat 对象
