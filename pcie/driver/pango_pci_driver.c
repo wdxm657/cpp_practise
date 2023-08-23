@@ -1,10 +1,10 @@
 #include "pango_pci_driver.h"
 #include "id_config.h"
 
-//#define NDEBUG
+#define NDEBUG
 
 #ifndef NDEBUG
-#define LOG(msg ...) printk(KERN_ALERT msg)
+#define LOG(msg ...) //printk(KERN_ALERT msg)
 #else
 #define LOG(msg ...)
 #endif
@@ -108,7 +108,7 @@ static void ReadConfig(struct pci_dev * pdev)
 	unsigned long reg_base, reg_len;
 
 	/* Read PCI configuration space 读取PCI配置空间*/
-	printk(KERN_INFO "PCI Configuration Space:\n");
+	//printk(KERN_INFO "PCI Configuration Space:\n");
 	for(i=0; i< 1024; i++)
 	{
 		pci_read_config_dword(pdev, i*4, &valdw);
@@ -119,61 +119,61 @@ static void ReadConfig(struct pci_dev * pdev)
 
 	/* Read Vendor ID 读取厂商ID*/
 	pci_read_config_word(pdev, PCI_VENDOR_ID, &valw);
-	printk("Vendor ID: 0x%x, \n", valw);
+	//printk("Vendor ID: 0x%x, \n", valw);
 	command_operation.get_pci_dev_info.vendor_id = valw;
 
 	/* Read Device ID 读取设备ID*/
 	pci_read_config_word(pdev, PCI_DEVICE_ID, &valw);
-	printk("Device ID: 0x%x, \n", valw);
+	//printk("Device ID: 0x%x, \n", valw);
 	command_operation.get_pci_dev_info.device_id = valw;
 
 	/* Read Command Register 读取命令寄存器*/
 	pci_read_config_word(pdev, PCI_COMMAND, &valw);
-	printk("Cmd Reg: 0x%x, \n", valw);
+	//printk("Cmd Reg: 0x%x, \n", valw);
 	command_operation.get_pci_dev_info.cmd_reg = valw;
 
 	/* Read Status Register 读取状态寄存器*/
 	pci_read_config_word(pdev, PCI_STATUS, &valw);
-	printk("Stat Reg: 0x%x, \n", valw);
+	//printk("Stat Reg: 0x%x, \n", valw);
 	command_operation.get_pci_dev_info.status_reg = valw;
 
 	/* Read Revision ID 阅读修订ID*/
 	pci_read_config_byte(pdev, PCI_REVISION_ID, &valb);
-	printk("Revision ID: 0x%x, \n", valb);
+	//printk("Revision ID: 0x%x, \n", valb);
 	command_operation.get_pci_dev_info.revision_id = valb;
 
 	/* Read Class Code */
 	/*
 	pci_read_config_dword(pdev, PCI_CLASS_PROG, &valdw);
-	printk("Class Code: 0x%lx, ", valdw);
+	//printk("Class Code: 0x%lx, ", valdw);
 	valdw &= 0x00ffffff;
-	printk("Class Code: 0x%lx, ", valdw);
+	//printk("Class Code: 0x%lx, ", valdw);
 	*/
 	/* Read Reg-level Programming Interface 读取reg级编程接口*/
 	pci_read_config_byte(pdev, PCI_CLASS_PROG, &valb);
-	printk("Class Prog: 0x%x, \n", valb);
+	//printk("Class Prog: 0x%x, \n", valb);
 	command_operation.get_pci_dev_info.class_prog = valb;
 
 	/* Read Device Class */
 	pci_read_config_word(pdev, PCI_CLASS_DEVICE, &valw);
-	printk("Device Class: 0x%x, \n", valw);
+	//printk("Device Class: 0x%x, \n", valw);
 	command_operation.get_pci_dev_info.class_device = valw;
 
 	  /* Read Cache Line 读缓存线*/
 	  pci_read_config_byte(pdev, PCI_CACHE_LINE_SIZE, &valb);
-	  printk("Cache Line Size: 0x%x, \n", valb);
+	  //printk("Cache Line Size: 0x%x, \n", valb);
 	
 	  /* Read Latency Timer 读延迟计时器*/
 	  pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &valb);
-	  printk("Latency Timer: 0x%x, \n", valb);
+	  //printk("Latency Timer: 0x%x, \n", valb);
 	
 	  /* Read Header Type 读头类型*/
 	  pci_read_config_byte(pdev, PCI_HEADER_TYPE, &valb);
-	  printk("Header Type: 0x%x, \n", valb);
+	  //printk("Header Type: 0x%x, \n", valb);
 	
 	  /* Read BIST */
 	  pci_read_config_byte(pdev, PCI_BIST, &valb);
-	  printk("BIST: 0x%x\n", valb);
+	  //printk("BIST: 0x%x\n", valb);
 
 	/* Read all 6 BAR registers 读取所有6个BAR寄存器*/
 	for(i=0; i<=5; i++)
@@ -181,50 +181,44 @@ static void ReadConfig(struct pci_dev * pdev)
 		/* Physical address & length 物理地址和长度*/
 		reg_base = pci_resource_start(pdev, i);
 		reg_len = pci_resource_len(pdev, i);
-		printk("BAR%d: Addr:0x%lx Len:0x%lx,  ", i, reg_base, reg_len);
+		//printk("BAR%d: Addr:0x%lx Len:0x%lx,  ", i, reg_base, reg_len);
 		command_operation.get_pci_dev_info.bar[i].bar_base = reg_base;
 		command_operation.get_pci_dev_info.bar[i].bar_len = reg_len;
-
-		/* Flags */
-		if((pci_resource_flags(pdev, i) & IORESOURCE_MEM))
-		  printk("Region is for memory\n");
-		else if((pci_resource_flags(pdev, i) & IORESOURCE_IO))
-		  printk("Region is for I/O\n");
 	}
-	printk("\n");
+	//printk("\n");
 
 	  /* Read CIS Pointer 读CIS指针*/
 	  pci_read_config_dword(pdev, PCI_CARDBUS_CIS, &valdw);
-	  printk("CardBus CIS Pointer: 0x%x, \n", valdw);
+	  //printk("CardBus CIS Pointer: 0x%x, \n", valdw);
 	
 	  /* Read Subsystem Vendor ID 读取子系统供应商ID*/
 	  pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, &valw);
-	  printk("Subsystem Vendor ID: 0x%x, \n", valw);
+	  //printk("Subsystem Vendor ID: 0x%x, \n", valw);
 	
 	  /* Read Subsystem Device ID 读取子系统设备ID*/
 	  pci_read_config_word(pdev, PCI_SUBSYSTEM_ID, &valw);
-	  printk("Subsystem Device ID: 0x%x\n", valw);
+	  //printk("Subsystem Device ID: 0x%x\n", valw);
 	
 	  /* Read Expansion ROM Base Address 读取扩展ROM的基地地址*/
 	  pci_read_config_dword(pdev, PCI_ROM_ADDRESS, &valdw);
-	  printk("Expansion ROM Base Address: 0x%x\n", valdw);
+	  //printk("Expansion ROM Base Address: 0x%x\n", valdw);
 	
 	  /* Read IRQ Line 读IRQ线*/
 	  pci_read_config_byte(pdev, PCI_INTERRUPT_LINE, &valb);
-	  printk("IRQ Line: 0x%x, ", valb);
+	  //printk("IRQ Line: 0x%x, ", valb);
 	
 	  /* Read IRQ Pin 读IRQ引脚*/
 	  pci_read_config_byte(pdev, PCI_INTERRUPT_PIN, &valb);
-	  printk("IRQ Pin: 0x%x, ", valb);
+	  //printk("IRQ Pin: 0x%x, ", valb);
 
 	/* Read Min Gnt */
 	pci_read_config_byte(pdev, PCI_MIN_GNT, &valb);
-	printk("Min Gnt: 0x%x, ", valb);
+	//printk("Min Gnt: 0x%x, ", valb);
 	command_operation.get_pci_dev_info.min_gnt = valb;
 
 	/* Read Max Lat */
 	pci_read_config_byte(pdev, PCI_MAX_LAT, &valb);
-	printk("Max Lat: 0x%x\n", valb);
+	//printk("Max Lat: 0x%x\n", valb);
 	command_operation.get_pci_dev_info.max_lat = valb;
 	
 	if(pci_find_capability(pdev, PCI_CAP_ID_EXP))
@@ -233,19 +227,19 @@ static void ReadConfig(struct pci_dev * pdev)
 		pci_read_config_word(pdev, pos + PCI_EXP_LNKSTA, &valw);
 		command_operation.get_pci_dev_info.link_speed = (valw & 0x0003);
 		command_operation.get_pci_dev_info.link_width = (valw & 0x03f0) >> 4;
-		printk("Link Speed: %d\n", command_operation.get_pci_dev_info.link_speed);
-		printk("Link Width: x%d\n", command_operation.get_pci_dev_info.link_width);
+		//printk("Link Speed: %d\n", command_operation.get_pci_dev_info.link_speed);
+		//printk("Link Width: x%d\n", command_operation.get_pci_dev_info.link_width);
 		
 		pci_read_config_word(pdev, pos + PCI_EXP_DEVCTL, &valw);
 		command_operation.get_pci_dev_info.mps = 128 << ((valw & PCI_EXP_DEVCTL_PAYLOAD) >> 5);
 		command_operation.get_pci_dev_info.mrrs = 128 << ((valw & PCI_EXP_DEVCTL_READRQ) >> 12);
-		printk("MPS: %d\n", command_operation.get_pci_dev_info.mps);
-		printk("MRRS: %d\n", command_operation.get_pci_dev_info.mrrs);
+		//printk("MPS: %d\n", command_operation.get_pci_dev_info.mps);
+		//printk("MRRS: %d\n", command_operation.get_pci_dev_info.mrrs);
 		
 	}
 	else
 	{
-		printk("Cannot find PCI Express Capabilities\n");
+		//printk("Cannot find PCI Express Capabilities\n");
 		command_operation.get_pci_dev_info.link_speed = 0;
 		command_operation.get_pci_dev_info.link_width = 0;
 		command_operation.get_pci_dev_info.mps = 0;
@@ -277,7 +271,7 @@ static void ReadConfig(struct pci_dev * pdev)
 			command_operation.cap_info.cap_buf[valb].id = id;
 			command_operation.cap_info.cap_buf[valb].addr_offset = valb;
 			command_operation.cap_info.cap_buf[valb].next_offset = next;
-			printk("cap id = %x; addr_offset = %x; next_offset = %x\n", id, valb, next);
+			//printk("cap id = %x; addr_offset = %x; next_offset = %x\n", id, valb, next);
 			if(id == 0xff)
 			{
 				command_operation.cap_info.cap_error = 1;
@@ -351,7 +345,7 @@ long pango_cdev_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	unsigned int i = 0;
 	if(down_interruptible(&pci_pango->_sem))
 	{
-		printk(KERN_ALERT "********* pango_cdev_read interruptible *********\n");
+		//printk(KERN_ALERT "********* pango_cdev_read interruptible *********\n");
 		return -ERESTARTSYS;
 	}
 	switch(cmd)
@@ -378,9 +372,9 @@ long pango_cdev_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			dma_info.cmd.data.addr_type = dma_info.addr_r.addr_size;
 			dma_info.addr_r.addr = dma_info.addr_r.addr + dma_operation.offset_addr;
 			dma_info.addr_w.addr = dma_info.addr_w.addr + dma_operation.offset_addr;
-			printk("addr_size = %d;     current_len = %d(dw)\n", (dma_info.addr_r.addr_size) ? 64 : 32, dma_operation.current_len);
-			printk("dma_addr_r  = 0x%llx; offset_addr = 0x%x\n", dma_info.addr_r.addr - dma_operation.offset_addr, dma_operation.offset_addr);
-			printk("dma_addr_w  = 0x%llx; offset_addr = 0x%x\n", dma_info.addr_w.addr - dma_operation.offset_addr, dma_operation.offset_addr);
+			//printk("addr_size = %d;     current_len = %d(dw)\n", (dma_info.addr_r.addr_size) ? 64 : 32, dma_operation.current_len);
+			//printk("dma_addr_r  = 0x%llx; offset_addr = 0x%x\n", dma_info.addr_r.addr - dma_operation.offset_addr, dma_operation.offset_addr);
+			//printk("dma_addr_w  = 0x%llx; offset_addr = 0x%x\n", dma_info.addr_w.addr - dma_operation.offset_addr, dma_operation.offset_addr);
 			spin_unlock(&dma_info.addr_r.lock);
 		break;
 		
@@ -446,8 +440,8 @@ long pango_cdev_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			performance_config.cmd.data.op_type = performance_operation.cmd;
 			set_dma_w_r(performance_config.cmd.value, pci_pango);
 			set_dma_addr(&performance_config.addr, pci_pango);
-			printk("addr_size = %d;     current_len = %d(dw)\n", (performance_config.addr.addr_size) ? 64 : 32, performance_operation.current_len);
-			printk("operation cmd = 0x%02x; dma_addr  = 0x%llx \n", performance_operation.cmd, performance_config.addr.addr);
+			//printk("addr_size = %d;     current_len = %d(dw)\n", (performance_config.addr.addr_size) ? 64 : 32, performance_operation.current_len);
+			//printk("operation cmd = 0x%02x; dma_addr  = 0x%llx \n", performance_operation.cmd, performance_config.addr.addr);
 			spin_unlock(&performance_config.addr.lock);
 		break;
 
