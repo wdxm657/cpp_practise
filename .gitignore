@@ -20,5 +20,7 @@
 Module* 
 modules*
 
+py/*.mp4
+
 build
 .vscode

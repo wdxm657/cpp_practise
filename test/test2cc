@@ -1,0 +1,30 @@
+#include <vector>
+#include <opencv2/opencv.hpp>
+
+int main()
+{
+    cv::Mat dst = cv::imread("/home/wdxm/code/cpp_practise/source/data/bus.jpg");
+    while (true)
+    {
+            Glib::RefPtr<Gdk::Pixbuf> pixbuf =
+            Gdk::Pixbuf::create_from_data((guint8*)dst.data,
+                                            Gdk::COLORSPACE_RGB,
+                                            false,
+                                            8,
+                                            dst.cols,
+                                            dst.rows,
+                                            (int) dst.step);
+            image_.set(pixbuf);
+        
+        image_processor->store_frame(dst);
+        //下面这行打开的话按钮点一次执行一次，不打开则点击开启，再次点击关闭
+        // dma_flag = false;
+            // 检查是否需要启动图像处理线程
+            if (start_flag) {
+                start_pro = false;
+            }else {
+            start_pro = true;
+            }
+        }
+    return 0;
+}

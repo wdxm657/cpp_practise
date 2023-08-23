@@ -45,7 +45,7 @@ cv::Mat Inference::base_exam(cv::Mat &frame)
     std::vector<Detection> output = runInference(frame);
 
     int detections = output.size();
-    std::cout << "Number of detections:" << detections << std::endl;
+    // std::cout << "Number of detections:" << detections << std::endl;
 
     for (int i = 0; i < detections; ++i)
     {

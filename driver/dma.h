@@ -11,7 +11,7 @@
 #define TOTAL_FRAME_PIX 2 * 512 * 2025
 #define H_NUM 1280
 #define V_NUM 720
-#define DW_NUM 640
+#define DW_NUM 1020// 640 + 8
 // 1920*1080/1024(512DW = 1024pix) = 2025
 // 1280*720/1024(512DW = 1024pix)  = 900
 #define TOTAL_SEND_TIME ((H_NUM * V_NUM) / (DW_NUM * 2)) 
@@ -35,10 +35,10 @@ public:
     DMA();
     ~DMA();
 
-    void dma_auto_process(int fd, cv::Mat &dst);
-    void swicth_pcie_state(bool rdy);
-    void PCI_MAP(bool flag,int fd);
-    void resume();
+    void dma_auto_process(cv::Mat &dst);
+    void PCI_MAP(bool flag);
+    void resume(int fd);
+    void setfd(int fd);
 
 private:
     // dma operator
@@ -48,9 +48,13 @@ private:
     int pcie_fd;
 
     int pix_row;
+    int pix_col;
+
     cv::Mat img;
 
     bool img_finish;
+
+    bool inital_flag = false;
 
     /**************************************************************************
     ** 函数名称:    dma_auto_process
@@ -60,12 +64,13 @@ private:
     ** 输出参数:    无
     ** 返回参数:    无
     ****************************************************************************/
+    void dma_check();
     void dma_auto(cv::Mat &dst);
-    void dma_wr();
-    void rd_data_parse(cv::Mat &dst);
-    bool line_flag_ctl();
+    void pcie_rd();
+    void pcie_wr();
     void pcie_rw();
     void pcie_data_printf();
-};
+    void simulation_fram(uint32_t);
+};  
 
 #endif // DMA_H

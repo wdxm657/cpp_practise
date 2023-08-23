@@ -1,33 +1,34 @@
-#include <vector>
 #include <opencv2/opencv.hpp>
+#include <fstream>
 
-int main()
+using namespace cv;
+
+int main(int argc, char **argv)
 {
-    // 创建包含 1920*1080 个 uint16_t 类型元素的向量对象
-    std::vector<uint16_t> vec(1920 * 1080);
+    // 加载图像
+    Mat img = imread("/home/wdxm/test/test0.bmp");
 
-    // 将向量对象填充为随机值
-    for (int i = 0; i < vec.size(); i++)
+    // 获取图像的宽度和高度
+    int width = img.cols;
+    std::cout << width << std::endl;
+    int height = img.rows;
+    std::cout << height << std::endl;
+
+    // 打开输出文件
+    std::ofstream outfile("/home/wdxm/test/test0.txt");
+
+    // 遍历图像的每个像素并将其写入文件
+    for (int y = 0; y < height; y++)
     {
-        vec[i] = static_cast<uint16_t>(0xf8 << 8) | static_cast<uint16_t>(0x00);
+        for (int x = 0; x < width; x++)
+        {
+            Vec3b pixel = img.at<Vec3b>(y, x);
+            outfile << (int)pixel[0] << " " << (int)pixel[1] << " " << (int)pixel[2] << std::endl;
+        }
     }
 
-    // 创建空的 cv::Mat 对象
-    cv::Mat img(1080, 1920, CV_8UC3);
-
-    // 复制向量数据到图像数据
-    for (int i = 0; i < vec.size(); i++)
-    {
-        uint16_t pixel = vec[i];
-        uint8_t r = (pixel >> 11) & 0x1f;
-        uint8_t g = (pixel >> 5) & 0x3f;
-        uint8_t b = pixel & 0x1f;
-        img.at<cv::Vec3b>(i / 1920, i % 1920) = cv::Vec3b(b << 3, g << 2, r << 3);
-    }
-
-    // 在窗口中显示图像
-    cv::imshow("Image", img);
-    cv::waitKey(0);
+    // 关闭输出文件
+    outfile.close();
 
     return 0;
 }
