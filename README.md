@@ -16,6 +16,7 @@ app程序的主线程使用方法为先打开MAP，在打开DMA，在打开INFER
 关闭app之前务必要关闭MAP，否则无法再次运行APP，必须关闭电脑 复位FPGA重来
 遇到APP直接 崩溃不需要重启电脑  按照正常打开方式继续运行即可
 这里的崩溃问题我一直没找到问题，  pcie的数据是一直在接受的   就是GTK的图像显示会显示不出来会出现app崩溃的情况
+效果地址：【第七届集创赛紫光同创杯国二作品过程】 https://www.bilibili.com/video/BV1ap4y1E79b/?share_source=copy_web&vd_source=8d3e40a574554900063491759b082b3b
 <!-- 
 yolov8s.onnx:
 
